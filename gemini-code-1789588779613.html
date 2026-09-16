@@ -1,0 +1,599 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>মেসার্স বই বিচিত্রা</title>
+    
+    <!-- Google Font & Font Awesome -->
+    <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Image Cropper.js CSS & JS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
+
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-storage-compat.js"></script>
+
+    <style>
+        :root {
+            --primary-color: #f97316;
+            --primary-dark: #c2410c;
+            --bg-color: #f8fafc;
+            --text-main: #1e293b;
+        }
+
+        body {
+            font-family: 'Hind Siliguri', sans-serif;
+            margin: 0;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            padding-bottom: 70px;
+        }
+
+        header {
+            background-color: #ffffff;
+            padding: 12px 18px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .logo {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--primary-color);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .container {
+            padding: 15px;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .search-box {
+            position: relative;
+            margin-bottom: 20px;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 12px 15px 12px 40px;
+            border: 1px solid #cbd5e1;
+            border-radius: 10px;
+            font-family: inherit;
+            box-sizing: border-box;
+            font-size: 15px;
+            outline: none;
+        }
+
+        .search-box i {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #94a3b8;
+        }
+
+        .product-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+            gap: 15px;
+        }
+
+        /* সুন্দর প্রিমিয়াম কার্ড স্টাইল */
+        .product-card {
+            background: white;
+            border-radius: 14px;
+            padding: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            border: 1px solid #f1f5f9;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .product-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+        }
+
+        .img-container {
+            width: 100%;
+            height: 180px;
+            border-radius: 10px;
+            overflow: hidden;
+            background: #f1f5f9;
+            position: relative;
+        }
+
+        .product-card img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.3s ease;
+        }
+
+        .product-card:hover img {
+            transform: scale(1.05);
+        }
+
+        .badge-discount {
+            position: absolute;
+            top: 8px;
+            left: 8px;
+            background: #ef4444;
+            color: white;
+            font-size: 11px;
+            font-weight: 700;
+            padding: 3px 8px;
+            border-radius: 6px;
+            box-shadow: 0 2px 5px rgba(239,68,68,0.4);
+        }
+
+        .product-title {
+            font-size: 14px;
+            font-weight: 600;
+            margin: 10px 0 6px 0;
+            line-height: 1.4;
+            height: 38px;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .price-area {
+            display: flex;
+            align-items: baseline;
+            gap: 6px;
+            margin-bottom: 10px;
+        }
+
+        .current-price {
+            color: var(--primary-color);
+            font-weight: 700;
+            font-size: 16px;
+        }
+
+        .old-price {
+            color: #94a3b8;
+            font-size: 13px;
+            text-decoration: line-through;
+        }
+
+        .add-cart-btn {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 9px;
+            border-radius: 8px;
+            width: 100%;
+            cursor: pointer;
+            font-family: inherit;
+            font-weight: 600;
+            font-size: 14px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .add-cart-btn:hover {
+            background: var(--primary-dark);
+        }
+
+        /* Bottom Nav */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: white;
+            display: flex;
+            justify-content: space-around;
+            padding: 10px 0;
+            border-top: 1px solid #e2e8f0;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.04);
+            z-index: 90;
+        }
+
+        .nav-item {
+            text-align: center;
+            color: #64748b;
+            font-size: 12px;
+            cursor: pointer;
+            font-weight: 500;
+        }
+
+        .nav-item.active {
+            color: var(--primary-color);
+            font-weight: 700;
+        }
+
+        .nav-item i {
+            font-size: 18px;
+            display: block;
+            margin-bottom: 3px;
+        }
+
+        /* Modal Box */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(4px);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 22px;
+            border-radius: 16px;
+            width: 90%;
+            max-width: 450px;
+            max-height: 85vh;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 15px;
+            right: 18px;
+            font-size: 22px;
+            cursor: pointer;
+            color: #64748b;
+        }
+
+        .form-group {
+            margin-bottom: 14px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 6px;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 10px;
+            box-sizing: border-box;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            font-family: inherit;
+        }
+
+        .btn-submit {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 12px;
+            width: 100%;
+            border-radius: 8px;
+            font-weight: 700;
+            cursor: pointer;
+            font-size: 15px;
+            font-family: inherit;
+        }
+
+        /* Cropper Preview Box */
+        .crop-preview-container {
+            width: 100%;
+            max-height: 280px;
+            margin-top: 10px;
+            overflow: hidden;
+            display: none;
+            border-radius: 8px;
+            background: #000;
+        }
+
+        .crop-preview-container img {
+            max-width: 100%;
+        }
+
+        .admin-btn {
+            background: #10b981;
+            color: white;
+            border: none;
+            padding: 8px 14px;
+            border-radius: 8px;
+            font-family: inherit;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="logo">
+            <i class="fa-solid fa-book-open"></i> মেসার্স বই বিচিত্রা
+        </div>
+        <button class="admin-btn" onclick="openAddProductModal()">
+            <i class="fa-solid fa-plus-circle"></i> বই যোগ করুন
+        </button>
+    </header>
+
+    <div class="container">
+        <div class="search-box">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input type="text" id="searchInput" placeholder="বইয়ের নাম দিয়ে খুঁজুন..." onkeyup="filterProducts()">
+        </div>
+
+        <div class="product-grid" id="productGrid">
+            <p style="text-align: center; grid-column: 1/-1;">বই লোড হচ্ছে...</p>
+        </div>
+    </div>
+
+    <!-- Bottom Navigation -->
+    <div class="bottom-nav">
+        <div class="nav-item active"><i class="fa-solid fa-house"></i>হোম</div>
+        <div class="nav-item" onclick="openAdminOrders()"><i class="fa-solid fa-receipt"></i>অর্ডারসমূহ</div>
+    </div>
+
+    <!-- Add Book Modal (with Image Cropper) -->
+    <div class="modal" id="addProductModal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeModal('addProductModal')">&times;</span>
+            <h3 style="margin-top:0;"><i class="fa-solid fa-upload"></i> নতুন বই যোগ করুন</h3>
+            <form id="addProductForm" onsubmit="uploadProduct(event)">
+                <div class="form-group">
+                    <label>বইয়ের নাম *</label>
+                    <input type="text" id="prodName" required placeholder="উদাহরণ: রসায়ন ১ম পত্র">
+                </div>
+                <div style="display: flex; gap: 10px;">
+                    <div class="form-group" style="flex:1;">
+                        <label>বিক্রয় মূল্য (৳) *</label>
+                        <input type="number" id="prodPrice" required placeholder="380">
+                    </div>
+                    <div class="form-group" style="flex:1;">
+                        <label>আসল মূল্য (৳)</label>
+                        <input type="number" id="prodOldPrice" placeholder="400">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>গ্যালারি থেকে ছবি সিলেক্ট করুন *</label>
+                    <input type="file" id="prodImage" accept="image/*" onchange="handleImageSelect(event)">
+                </div>
+
+                <!-- Crop Container -->
+                <div class="crop-preview-container" id="cropContainer">
+                    <img id="cropImage" src="" alt="Crop Image">
+                </div>
+
+                <div style="margin-top: 15px;">
+                    <button type="submit" class="btn-submit" id="uploadBtn">ক্রপ করুন ও আপলোড দিন</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Admin Orders Modal -->
+    <div class="modal" id="ordersModal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeModal('ordersModal')">&times;</span>
+            <h3 style="margin-top:0;"><i class="fa-solid fa-list-check"></i> প্রাপ্ত অর্ডারসমূহ</h3>
+            <div id="ordersList">অর্ডার লোড হচ্ছে...</div>
+        </div>
+    </div>
+
+    <script>
+        // Firebase Configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyIwTmROHmNdkjGwTDFNZMvTp4w1Lu7pmvQ",
+            authDomain: "my-project-7d1fa.firebaseapp.com",
+            projectId: "my-project-7d1fa",
+            storageBucket: "my-project-7d1fa.firebasestorage.app",
+            messagingSenderId: "548682566998",
+            appId: "1:548682566998:web:0a4a60fabb04a1b01b8bc9",
+            measurementId: "G-QDHRF8SFWQ"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+        const storage = firebase.storage();
+
+        let cropper = null;
+        let allProducts = [];
+
+        // ১. ডাটাবেজ থেকে বই লোড করা
+        function loadProducts() {
+            const grid = document.getElementById("productGrid");
+            db.collection("products").orderBy("createdAt", "desc").onSnapshot(snapshot => {
+                grid.innerHTML = "";
+                allProducts = [];
+                if(snapshot.empty) {
+                    grid.innerHTML = "<p style='grid-column: 1/-1; text-align: center; color: #64748b;'>কোনো বই পাওয়া যায়নি।</p>";
+                    return;
+                }
+                snapshot.forEach(doc => {
+                    const p = { id: doc.id, ...doc.data() };
+                    allProducts.push(p);
+                    renderProductCard(p, grid);
+                });
+            });
+        }
+
+        function renderProductCard(p, container) {
+            const discount = (p.oldPrice && p.oldPrice > p.price) ? Math.round(((p.oldPrice - p.price) / p.oldPrice) * 100) : 0;
+            container.innerHTML += `
+                <div class="product-card">
+                    <div>
+                        <div class="img-container">
+                            ${discount > 0 ? `<span class="badge-discount">${discount}% ছাড়</span>` : ''}
+                            <img src="${p.imageUrl}" alt="${p.name}">
+                        </div>
+                        <div class="product-title">${p.name}</div>
+                        <div class="price-area">
+                            <span class="current-price">৳ ${p.price}</span>
+                            ${p.oldPrice ? `<span class="old-price">৳ ${p.oldPrice}</span>` : ''}
+                        </div>
+                    </div>
+                    <button class="add-cart-btn" onclick="alert('অর্ডার করতে কার্ট অপশন ব্যবহার করুন')">
+                        <i class="fa-solid fa-cart-plus"></i> অর্ডার করুন
+                    </button>
+                </div>
+            `;
+        }
+
+        // ২. সার্চ ফিল্টার
+        function filterProducts() {
+            const query = document.getElementById("searchInput").value.toLowerCase();
+            const grid = document.getElementById("productGrid");
+            grid.innerHTML = "";
+            const filtered = allProducts.filter(p => p.name.toLowerCase().includes(query));
+            filtered.forEach(p => renderProductCard(p, grid));
+        }
+
+        // ৩. গ্যালারি থেকে ছবি সিলেক্ট করলে Cropper টুল চালু হওয়া
+        function handleImageSelect(event) {
+            const files = event.target.files;
+            if (files && files.length > 0) {
+                const file = files[0];
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    const cropImg = document.getElementById("cropImage");
+                    cropImg.src = e.target.result;
+                    document.getElementById("cropContainer").style.display = "block";
+
+                    if (cropper) {
+                        cropper.destroy();
+                    }
+
+                    // Cropper.js সেটআপ (অটো জুম ও স্কেলিং বন্ধ রাখা হয়েছে)
+                    cropper = new Cropper(cropImg, {
+                        aspectRatio: 3 / 4,
+                        viewMode: 1,
+                        autoCropArea: 1,
+                        zoomable: false,
+                        scalable: false,
+                        background: false
+                    });
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        // ৪. ক্রপ করা ছবি ক্যানভাস বানিয়ে ফায়ারবেসে আপলোড করা
+        function uploadProduct(e) {
+            e.preventDefault();
+            const name = document.getElementById("prodName").value;
+            const price = Number(document.getElementById("prodPrice").value);
+            const oldPrice = document.getElementById("prodOldPrice").value ? Number(document.getElementById("prodOldPrice").value) : null;
+            const btn = document.getElementById("uploadBtn");
+
+            if (!cropper) {
+                alert("অনুগ্রহ করে গ্যালারি থেকে একটি ছবি সিলেক্ট করুন!");
+                return;
+            }
+
+            btn.disabled = true;
+            btn.innerText = "ছবি ক্রপ ও রিসাইজ হচ্ছে...";
+
+            // ক্রপ করা হাই-কোয়ালিটি ক্যানভাস তৈরি (৬০০ x ৮০০ পিক্সেল)
+            const canvas = cropper.getCroppedCanvas({
+                width: 600,
+                height: 800,
+                imageSmoothingEnabled: true,
+                imageSmoothingQuality: 'high'
+            });
+
+            // ক্যানভাসকে ছবি ফাইলে রূপান্তরিত করে আপলোড করা
+            canvas.toBlob((blob) => {
+                btn.innerText = "ফায়ারবেসে আপলোড হচ্ছে...";
+                const storageRef = storage.ref('books/' + Date.now() + '_cropped.jpg');
+                const uploadTask = storageRef.put(blob, { contentType: 'image/jpeg' });
+
+                uploadTask.on('state_changed', 
+                    null, 
+                    (error) => {
+                        console.error(error);
+                        alert("ছবি আপলোড ব্যর্থ হয়েছে! ফায়ারবেস স্টোরেজ পারমিশন চেক করুন।");
+                        btn.disabled = false;
+                        btn.innerText = "ক্রপ করুন ও আপলোড দিন";
+                    }, 
+                    () => {
+                        uploadTask.snapshot.ref.getDownloadURL().then((downloadURL) => {
+                            db.collection("products").add({
+                                name: name,
+                                price: price,
+                                oldPrice: oldPrice,
+                                imageUrl: downloadURL,
+                                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                            }).then(() => {
+                                alert("বই সফলভাবে ক্রপ ও আপলোড হয়েছে!");
+                                closeModal('addProductModal');
+                                resetForm();
+                            }).finally(() => {
+                                btn.disabled = false;
+                                btn.innerText = "ক্রপ করুন ও আপলোড দিন";
+                            });
+                        });
+                    }
+                );
+            }, 'image/jpeg', 0.9);
+        }
+
+        function resetForm() {
+            document.getElementById("addProductForm").reset();
+            document.getElementById("cropContainer").style.display = "none";
+            if (cropper) {
+                cropper.destroy();
+                cropper = null;
+            }
+        }
+
+        function openAddProductModal() {
+            document.getElementById("addProductModal").style.display = "flex";
+        }
+
+        function openAdminOrders() {
+            document.getElementById("ordersModal").style.display = "flex";
+            const list = document.getElementById("ordersList");
+            db.collection("orders").orderBy("createdAt", "desc").get().then(snapshot => {
+                list.innerHTML = "";
+                if(snapshot.empty) { list.innerHTML = "<p>কোনো অর্ডার পাওয়া যায়নি।</p>"; return; }
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    list.innerHTML += `
+                        <div style="border-bottom: 1px solid #e2e8f0; padding: 10px 0;">
+                            <strong>গ্রাহক:</strong> ${data.customerName || 'N/A'} (${data.phone || ''})<br>
+                            <strong>ঠিকানা:</strong> ${data.address || ''}<br>
+                            <strong>মোট টাকা:</strong> ৳${data.totalAmount || 0}
+                        </div>
+                    `;
+                });
+            });
+        }
+
+        function closeModal(id) {
+            document.getElementById(id).style.display = "none";
+            if(id === 'addProductModal') resetForm();
+        }
+
+        window.onload = loadProducts;
+    </script>
+</body>
+</html>
