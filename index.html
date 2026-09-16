@@ -106,11 +106,9 @@
             box-shadow: 0 8px 20px rgba(0,0,0,0.1);
         }
 
-        /* অটো ক্রপ/জুম বন্ধ করতে ইমেজ কন্টেইনার ফ্লেক্সিবল করা হয়েছে */
         .img-container {
             width: 100%;
-            min-height: 180px;
-            max-height: 220px;
+            height: 190px;
             border-radius: 10px;
             background: #f1f5f9;
             position: relative;
@@ -122,10 +120,10 @@
 
         .product-card img {
             max-width: 100%;
-            max-height: 220px;
+            max-height: 100%;
             width: auto;
             height: auto;
-            object-fit: contain; /* ছবি কাটবে না, পুরোটা ফ্রেমের ভেতর দেখাবে */
+            object-fit: contain;
             display: block;
         }
 
@@ -189,10 +187,6 @@
             justify-content: center;
             align-items: center;
             gap: 6px;
-        }
-
-        .add-cart-btn:hover {
-            background: var(--primary-dark);
         }
 
         .bottom-nav {
@@ -260,7 +254,7 @@
         }
 
         .form-group {
-            margin-bottom: 14px;
+            margin-bottom: 12px;
         }
 
         .form-group label {
@@ -292,10 +286,9 @@
             font-family: inherit;
         }
 
-        /* অরিজিনাল ছবি প্রিভিউ বক্স */
         .preview-box {
             width: 100%;
-            max-height: 250px;
+            max-height: 230px;
             margin-top: 10px;
             display: none;
             border-radius: 8px;
@@ -309,10 +302,18 @@
 
         .preview-box img {
             max-width: 100%;
-            max-height: 240px;
+            max-height: 220px;
             object-fit: contain;
             display: block;
             margin: 0 auto;
+        }
+
+        .discount-info {
+            font-size: 13px;
+            color: #ef4444;
+            font-weight: 600;
+            margin-top: -4px;
+            margin-bottom: 8px;
         }
 
         .admin-btn {
@@ -357,7 +358,7 @@
         <div class="nav-item" onclick="openAdminOrders()"><i class="fa-solid fa-receipt"></i>অর্ডারসমূহ</div>
     </div>
 
-    <!-- Add Book Modal -->
+    <!-- Modal for Adding Product -->
     <div class="modal" id="addProductModal">
         <div class="modal-content">
             <span class="close-btn" onclick="closeModal('addProductModal')">&times;</span>
@@ -365,24 +366,26 @@
             <form id="addProductForm" onsubmit="uploadProduct(event)">
                 <div class="form-group">
                     <label>বইয়ের নাম *</label>
-                    <input type="text" id="prodName" required placeholder="উদাহরণ: রসায়ন ১ম পত্র">
+                    <input type="text" id="prodName" required placeholder="উদাহরণ: বাংলা প্রথম">
                 </div>
                 <div style="display: flex; gap: 10px;">
                     <div class="form-group" style="flex:1;">
                         <label>বিক্রয় মূল্য (৳) *</label>
-                        <input type="number" id="prodPrice" required placeholder="380">
+                        <input type="number" id="prodPrice" required placeholder="380" oninput="calculateDiscountPreview()">
                     </div>
                     <div class="form-group" style="flex:1;">
                         <label>আসল মূল্য (৳)</label>
-                        <input type="number" id="prodOldPrice" placeholder="400">
+                        <input type="number" id="prodOldPrice" placeholder="400" oninput="calculateDiscountPreview()">
                     </div>
                 </div>
+
+                <div id="discountPreviewText" class="discount-info"></div>
+
                 <div class="form-group">
                     <label>গ্যালারি থেকে ছবি সিলেক্ট করুন *</label>
                     <input type="file" id="prodImage" accept="image/*" onchange="handleImageSelect(event)" required>
                 </div>
 
-                <!-- Preview Area -->
                 <div class="preview-box" id="previewContainer">
                     <img id="previewImage" src="" alt="Selected Image">
                 </div>
@@ -403,7 +406,6 @@
     </div>
 
     <script>
-        // Firebase Configuration
         const firebaseConfig = {
             apiKey: "AIzaSyIwTmROHmNdkjGwTDFNZMvTp4w1Lu7pmvQ",
             authDomain: "my-project-7d1fa.firebaseapp.com",
@@ -418,7 +420,7 @@
         const db = firebase.firestore();
         const storage = firebase.storage();
 
-        let selectedFile = null;
+        let compressedBlob = null;
         let allProducts = [];
 
         function loadProducts() {
@@ -435,11 +437,16 @@
                     allProducts.push(p);
                     renderProductCard(p, grid);
                 });
+            }, err => {
+                console.error("Firestore error:", err);
             });
         }
 
         function renderProductCard(p, container) {
-            const discount = (p.oldPrice && p.oldPrice > p.price) ? Math.round(((p.oldPrice - p.price) / p.oldPrice) * 100) : 0;
+            const price = Number(p.price) || 0;
+            const oldPrice = Number(p.oldPrice) || 0;
+            const discount = (oldPrice > price) ? Math.round(((oldPrice - price) / oldPrice) * 100) : 0;
+
             container.innerHTML += `
                 <div class="product-card">
                     <div>
@@ -449,15 +456,28 @@
                         </div>
                         <div class="product-title">${p.name}</div>
                         <div class="price-area">
-                            <span class="current-price">৳ ${p.price}</span>
-                            ${p.oldPrice ? `<span class="old-price">৳ ${p.oldPrice}</span>` : ''}
+                            <span class="current-price">৳ ${price}</span>
+                            ${oldPrice > price ? `<span class="old-price">৳ ${oldPrice}</span>` : ''}
                         </div>
                     </div>
-                    <button class="add-cart-btn" onclick="alert('অর্ডার করতে কার্ট অপশন ব্যবহার করুন')">
+                    <button class="add-cart-btn" onclick="alert('অর্ডার করতে যোগাযোগ করুন')">
                         <i class="fa-solid fa-cart-plus"></i> অর্ডার করুন
                     </button>
                 </div>
             `;
+        }
+
+        function calculateDiscountPreview() {
+            const price = Number(document.getElementById("prodPrice").value) || 0;
+            const oldPrice = Number(document.getElementById("prodOldPrice").value) || 0;
+            const previewText = document.getElementById("discountPreviewText");
+
+            if (oldPrice > price && price > 0) {
+                const discount = Math.round(((oldPrice - price) / oldPrice) * 100);
+                previewText.innerText = `✓ এই বইয়ে ${discount}% ছাড় ডিসকাউন্ট ব্যাজ যুক্ত হবে।`;
+            } else {
+                previewText.innerText = "";
+            }
         }
 
         function filterProducts() {
@@ -468,72 +488,96 @@
             filtered.forEach(p => renderProductCard(p, grid));
         }
 
+        // ক্লায়েন্ট সাইড ইমেজ কম্প্রেশন (ফাইল সাইজ দ্রুত আপলোডের জন্য কমিয়ে আনা)
         function handleImageSelect(event) {
-            const files = event.target.files;
-            if (files && files.length > 0) {
-                selectedFile = files[0];
-                const reader = new FileReader();
-                reader.onload = function (e) {
-                    const img = document.getElementById("previewImage");
-                    img.src = e.target.result;
-                    document.getElementById("previewContainer").style.display = "block";
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = function(e) {
+                const img = new Image();
+                img.src = e.target.result;
+                img.onload = function() {
+                    const canvas = document.createElement('canvas');
+                    const MAX_WIDTH = 800;
+                    const MAX_HEIGHT = 800;
+                    let width = img.width;
+                    let height = img.height;
+
+                    if (width > height) {
+                        if (width > MAX_WIDTH) {
+                            height *= MAX_WIDTH / width;
+                            width = MAX_WIDTH;
+                        }
+                    } else {
+                        if (height > MAX_HEIGHT) {
+                            width *= MAX_HEIGHT / height;
+                            height = MAX_HEIGHT;
+                        }
+                    }
+
+                    canvas.width = width;
+                    canvas.height = height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, width, height);
+
+                    canvas.toBlob((blob) => {
+                        compressedBlob = blob;
+                        document.getElementById("previewImage").src = canvas.toDataURL('image/jpeg', 0.85);
+                        document.getElementById("previewContainer").style.display = "block";
+                    }, 'image/jpeg', 0.85);
                 };
-                reader.readAsDataURL(selectedFile);
-            }
+            };
         }
 
-        // গ্যালারির ফাইল সরাসরি আসল ফরম্যাটে আপলোড হবে
         function uploadProduct(e) {
             e.preventDefault();
             const name = document.getElementById("prodName").value;
             const price = Number(document.getElementById("prodPrice").value);
-            const oldPrice = document.getElementById("prodOldPrice").value ? Number(document.getElementById("prodOldPrice").value) : null;
+            const oldPriceVal = document.getElementById("prodOldPrice").value;
+            const oldPrice = oldPriceVal ? Number(oldPriceVal) : null;
             const btn = document.getElementById("uploadBtn");
 
-            if (!selectedFile) {
-                alert("অনুগ্রহ করে গ্যালারি থেকে একটি ছবি সিলেক্ট করুন!");
+            if (!compressedBlob) {
+                alert("অনুগ্রহ করে গ্যালারি থেকে একটি ছবি নির্বাচন করুন!");
                 return;
             }
 
             btn.disabled = true;
-            btn.innerText = "ফায়ারবেসে আপলোড হচ্ছে...";
+            btn.innerText = "ছবি প্রসেস ও আপলোড হচ্ছে...";
 
-            const storageRef = storage.ref('books/' + Date.now() + '_' + selectedFile.name);
-            const uploadTask = storageRef.put(selectedFile);
+            const fileName = 'books/' + Date.now() + '.jpg';
+            const storageRef = storage.ref(fileName);
 
-            uploadTask.on('state_changed', 
-                null, 
-                (error) => {
-                    console.error(error);
-                    alert("ছবি আপলোড ব্যর্থ হয়েছে!");
-                    btn.disabled = false;
-                    btn.innerText = "বই আপলোড দিন";
-                }, 
-                () => {
-                    uploadTask.snapshot.ref.getDownloadURL().then((downloadURL) => {
-                        db.collection("products").add({
-                            name: name,
-                            price: price,
-                            oldPrice: oldPrice,
-                            imageUrl: downloadURL,
-                            createdAt: firebase.firestore.FieldValue.serverTimestamp()
-                        }).then(() => {
-                            alert("বই সফলভাবে আপলোড হয়েছে!");
-                            closeModal('addProductModal');
-                            resetForm();
-                        }).finally(() => {
-                            btn.disabled = false;
-                            btn.innerText = "বই আপলোড দিন";
-                        });
-                    });
-                }
-            );
+            storageRef.put(compressedBlob).then(snapshot => {
+                return snapshot.ref.getDownloadURL();
+            }).then(downloadURL => {
+                return db.collection("products").add({
+                    name: name,
+                    price: price,
+                    oldPrice: oldPrice,
+                    imageUrl: downloadURL,
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+            }).then(() => {
+                alert("বই সফলভাবে আপলোড হয়েছে!");
+                closeModal('addProductModal');
+                resetForm();
+            }).catch(error => {
+                console.error("Upload Error:", error);
+                alert("আপলোডে সমস্যা হয়েছে: " + error.message);
+            }).finally(() => {
+                btn.disabled = false;
+                btn.innerText = "বই আপলোড দিন";
+            });
         }
 
         function resetForm() {
             document.getElementById("addProductForm").reset();
             document.getElementById("previewContainer").style.display = "none";
-            selectedFile = null;
+            document.getElementById("discountPreviewText").innerText = "";
+            compressedBlob = null;
         }
 
         function openAddProductModal() {
@@ -550,9 +594,9 @@
                     const data = doc.data();
                     list.innerHTML += `
                         <div style="border-bottom: 1px solid #e2e8f0; padding: 10px 0;">
-                            <strong>গ্রাহক:</strong> ${data.customerName || 'N/A'} (${data.phone || ''})<br>
-                            <strong>ঠিকানা:</strong> ${data.address || ''}<br>
-                            <strong>মোট টাকা:</strong> ৳${data.totalAmount || 0}
+                            <strong>গ্রাহক:</strong> ${data.customerName || 'N/A'}<br>
+                            <strong>মোবাইল:</strong> ${data.phone || ''}<br>
+                            <strong>ঠিকানা:</strong> ${data.address || ''}
                         </div>
                     `;
                 });
