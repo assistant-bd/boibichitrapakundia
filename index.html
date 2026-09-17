@@ -127,15 +127,17 @@
       border-top: 1px solid rgba(255,255,255,0.1); font-size: 11px; color: #888;
     }
     .bottom-nav {
-      position: fixed; left: 0; bottom: 0; width: 100%; display: flex; justify-content: space-around;
+      position: fixed; left: 0; bottom: 0; width: 100%; display: flex !important; justify-content: space-around;
       background: #fff; border-top: 1px solid #e0e0e0; box-shadow: 0 -2px 10px rgba(0,0,0,0.08); z-index: 1000; padding: 10px 0;
+      visibility: visible !important; opacity: 1 !important;
     }
     .bottom-nav-item {
-      position: relative; display: flex; flex-direction: column; align-items: center; gap: 4px; color: #757575;
-      width: 25%; background: none; border: none; cursor: pointer; font-size: 11px; font-weight: 700;
+      position: relative; display: flex !important; flex-direction: column; align-items: center; gap: 4px; color: #757575;
+      width: 25%; background: none; border: none; cursor: pointer; font-size: 11px; font-weight: 700; padding: 4px 0;
+      visibility: visible !important; opacity: 1 !important;
     }
     .bottom-nav-item.active { color: #f85606; }
-    .bottom-nav-item i { font-size: 20px; }
+    .bottom-nav-item i { font-size: 20px; display: inline-block !important; }
     .cart-badge {
       position: absolute; top: -6px; right: 28%; background: #f85606; color: #fff; border-radius: 50%;
       padding: 2px 6px; font-size: 10px; font-weight: bold;
@@ -481,8 +483,8 @@
     </div>
   </div>
 
-  <div class="bottom-nav">
-    <button class="bottom-nav-item" id="nav-home-btn"><i class="fa-solid fa-house"></i><span>Home</span></button>
+  <div class="bottom-nav" id="bottom-nav">
+    <button class="bottom-nav-item active" id="nav-home-btn"><i class="fa-solid fa-house"></i><span>Home</span></button>
     <button class="bottom-nav-item" id="nav-cat-btn"><i class="fa-solid fa-layer-group"></i><span>Category</span></button>
     <button class="bottom-nav-item" id="nav-cart-btn"><span class="cart-badge" id="nav-cart-count">0</span><i class="fa-solid fa-cart-shopping"></i><span>Cart</span></button>
     <button class="bottom-nav-item" id="nav-account-btn"><i class="fa-solid fa-user"></i><span id="nav-account-label">Login</span></button>
@@ -1179,11 +1181,13 @@
     function showUserStoreView() {
       document.getElementById('user-store-view').style.display = 'block';
       document.getElementById('admin-panel-view').classList.remove('show');
+      document.getElementById('bottom-nav').style.display = 'flex';
     }
 
     function showAdminPanel() {
       document.getElementById('user-store-view').style.display = 'none';
       document.getElementById('admin-panel-view').classList.add('show');
+      document.getElementById('bottom-nav').style.display = 'flex';
       renderAdminOrders();
       renderAdminProducts();
       renderAdminCategories();
