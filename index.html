@@ -131,7 +131,7 @@
       background: #fff; border-top: 1px solid #e0e0e0; box-shadow: 0 -2px 10px rgba(0,0,0,0.08); z-index: 1000; padding: 10px 0;
     }
     .bottom-nav-item {
-      display: flex; flex-direction: column; align-items: center; gap: 4px; color: #757575;
+      position: relative; display: flex; flex-direction: column; align-items: center; gap: 4px; color: #757575;
       width: 25%; background: none; border: none; cursor: pointer; font-size: 11px; font-weight: 700;
     }
     .bottom-nav-item.active { color: #f85606; }
@@ -271,6 +271,28 @@
     .empty-state {
       text-align: center; color: #666; padding: 22px 12px; font-size: 13px;
     }
+    .modal-cat-grid { display: flex; flex-direction: column; gap: 8px; }
+    .modal-cat-item {
+      display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; background: #fafafa; border: 1px solid #e0e0e0; border-radius: 8px; font-size: 14px; font-weight: 600; color: #333; cursor: pointer;
+    }
+    .modal-cat-item-left {
+      display: flex; align-items: center; gap: 12px;
+    }
+    .modal-cat-icon {
+      width: 30px; height: 30px; border-radius: 6px; background: #fff5f0; color: #f85606; display: flex; align-items: center; justify-content: center; font-size: 13px;
+    }
+    .premium-alert-box { text-align: center; padding: 10px 5px; }
+    .premium-alert-icon {
+      width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 28px; margin: 0 auto 15px auto;
+    }
+    .premium-alert-icon.info { background: #e3f2fd; color: #1976d2; }
+    .premium-alert-icon.success { background: #e8f5e9; color: #2e7d32; }
+    .premium-alert-icon.warning { background: #fff8e1; color: #f57f17; }
+    .premium-alert-icon.danger { background: #ffebee; color: #c62828; }
+    .premium-alert-title { font-size: 18px; font-weight: 700; color: #212121; margin-bottom: 8px; }
+    .premium-alert-msg { font-size: 13px; color: #666; margin-bottom: 20px; line-height: 1.5; }
+    .premium-alert-actions { display: flex; gap: 10px; justify-content: center; }
+
     @media (max-width: 600px) {
       .product-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
       .account-options-grid { flex-direction: row; }
@@ -338,83 +360,48 @@
     </div>
 
     <div id="orders-tab" class="admin-section-box">
-      <div class="admin-section-title">
-        <span>Orders</span>
-        <span id="admin-orders-count">0</span>
-      </div>
+      <div class="admin-section-title"><span>Orders</span><span id="admin-orders-count">0</span></div>
       <div id="admin-orders-list"></div>
     </div>
 
     <div id="products-tab" class="admin-section-box" style="display:none;">
-      <div class="admin-section-title">
-        <span>Products</span>
-        <button class="btn-small btn-success" onclick="openAddProductModal()">+ Add</button>
-      </div>
+      <div class="admin-section-title"><span>Products</span><button class="btn-small btn-success" onclick="openAddProductModal()">+ Add</button></div>
       <div id="admin-products-list"></div>
     </div>
 
     <div id="categories-tab" class="admin-section-box" style="display:none;">
-      <div class="admin-section-title">
-        <span>Categories</span>
-      </div>
-      <div class="form-group-custom">
-        <label>New Category</label>
-        <input id="new-category-input" class="custom-input-field" placeholder="Enter category name" />
-      </div>
+      <div class="admin-section-title"><span>Categories</span></div>
+      <div class="form-group-custom"><label>New Category</label><input id="new-category-input" class="custom-input-field" placeholder="Enter category name" /></div>
       <button class="btn-admin-save" onclick="addCategory()">Save Category</button>
       <div id="admin-categories-list" style="margin-top: 14px;"></div>
     </div>
 
     <div id="payment-tab" class="admin-section-box" style="display:none;">
-      <div class="admin-section-title">
-        <span>Payment Methods</span>
-        <button class="btn-small btn-success" onclick="openAddPaymentModal()">+ Add</button>
-      </div>
+      <div class="admin-section-title"><span>Payment Methods</span><button class="btn-small btn-success" onclick="openAddPaymentModal()">+ Add</button></div>
       <div id="admin-payment-list"></div>
     </div>
 
     <div id="settings-tab" class="admin-section-box" style="display:none;">
       <div class="admin-section-title"><span>Store Settings</span></div>
-      <div class="form-group-custom">
-        <label>Shop Name</label>
-        <input id="settings-shop-name" class="custom-input-field" />
-      </div>
-      <div class="form-group-custom">
-        <label>Phone</label>
-        <input id="settings-phone" class="custom-input-field" />
-      </div>
-      <div class="form-group-custom">
-        <label>Address</label>
-        <input id="settings-address" class="custom-input-field" />
-      </div>
-      <div class="form-group-custom">
-        <label>Delivery Charge (Inside)</label>
-        <input id="settings-delivery-inside" type="number" class="custom-input-field" />
-      </div>
-      <div class="form-group-custom">
-        <label>Delivery Charge (Outside)</label>
-        <input id="settings-delivery-outside" type="number" class="custom-input-field" />
-      </div>
+      <div class="form-group-custom"><label>Shop Name</label><input id="settings-shop-name" class="custom-input-field" /></div>
+      <div class="form-group-custom"><label>Phone</label><input id="settings-phone" class="custom-input-field" /></div>
+      <div class="form-group-custom"><label>Address</label><input id="settings-address" class="custom-input-field" /></div>
+      <div class="form-group-custom"><label>Delivery Charge (Inside)</label><input id="settings-delivery-inside" type="number" class="custom-input-field" /></div>
+      <div class="form-group-custom"><label>Delivery Charge (Outside)</label><input id="settings-delivery-outside" type="number" class="custom-input-field" /></div>
       <button class="btn-admin-save" onclick="saveStoreSettings()">Save Settings</button>
     </div>
   </div>
 
   <div id="category-modal" class="modal-overlay">
     <div class="modal-body">
-      <div class="modal-header-premium">
-        <h3>Categories</h3>
-        <button class="close-btn-prm" onclick="closeModal('category-modal')">&times;</button>
-      </div>
+      <div class="modal-header-premium"><h3>Categories</h3><button class="close-btn-prm" onclick="closeModal('category-modal')">&times;</button></div>
       <div id="modal-cat-list" class="modal-cat-grid"></div>
     </div>
   </div>
 
   <div id="cart-modal" class="modal-overlay">
     <div class="modal-body">
-      <div class="modal-header-premium">
-        <h3>Cart</h3>
-        <button class="close-btn-prm" onclick="closeModal('cart-modal')">&times;</button>
-      </div>
+      <div class="modal-header-premium"><h3>Cart</h3><button class="close-btn-prm" onclick="closeModal('cart-modal')">&times;</button></div>
       <div id="cart-items-container"></div>
       <div class="bill-summary-box">
         <div class="bill-row"><span>Items</span><span id="cart-item-names-display">-</span></div>
@@ -428,45 +415,21 @@
 
   <div id="account-choice-modal" class="modal-overlay">
     <div class="modal-body">
-      <div class="login-hero-header">
-        <div class="login-hero-icon"><i class="fa-solid fa-user-gear"></i></div>
-        <h3 class="login-hero-title">Account Panel</h3>
-        <p class="login-hero-subtitle">Choose how you want to continue</p>
-      </div>
+      <div class="login-hero-header"><div class="login-hero-icon"><i class="fa-solid fa-user-gear"></i></div><h3 class="login-hero-title">Account Panel</h3><p class="login-hero-subtitle">Choose how you want to continue</p></div>
       <div class="account-options-grid">
-        <div class="account-option-card-row" onclick="selectAccountType('guest')">
-          <div class="icon-box acc-guest-icon"><i class="fa-solid fa-user-clock"></i></div>
-          <strong>Guest</strong>
-          <small>Quick order</small>
-        </div>
-        <div class="account-option-card-row" onclick="openCustomerLoginModal()">
-          <div class="icon-box acc-user-icon"><i class="fa-solid fa-user-check"></i></div>
-          <strong>Customer</strong>
-          <small>Login</small>
-        </div>
+        <div class="account-option-card-row" onclick="selectAccountType('guest')"><div class="icon-box acc-guest-icon"><i class="fa-solid fa-user-clock"></i></div><strong>Guest</strong><small>Quick order</small></div>
+        <div class="account-option-card-row" onclick="openCustomerLoginModal()"><div class="icon-box acc-user-icon"><i class="fa-solid fa-user-check"></i></div><strong>Customer</strong><small>Login</small></div>
       </div>
-      <div class="admin-login-small-link">
-        <button class="admin-login-btn-small" onclick="openAdminLoginModal()"><i class="fa-solid fa-shield-halved"></i> Admin Login</button>
-      </div>
+      <div class="admin-login-small-link"><button class="admin-login-btn-small" onclick="openAdminLoginModal()"><i class="fa-solid fa-shield-halved"></i> Admin Login</button></div>
       <button class="btn-action-secondary" onclick="closeModal('account-choice-modal')">Close</button>
     </div>
   </div>
 
   <div id="customer-login-modal" class="modal-overlay">
     <div class="modal-body">
-      <div class="login-hero-header">
-        <div class="login-hero-icon" style="background:#e8f5e9;color:#2e7d32;"><i class="fa-solid fa-user"></i></div>
-        <h3 class="login-hero-title">Customer Login</h3>
-        <p class="login-hero-subtitle">Continue with your customer account</p>
-      </div>
-      <div class="premium-input-wrapper">
-        <i class="fa-solid fa-envelope"></i>
-        <input id="customer-login-email" class="custom-input" placeholder="Email address" />
-      </div>
-      <div class="premium-input-wrapper">
-        <i class="fa-solid fa-lock"></i>
-        <input id="customer-login-password" type="password" class="custom-input" placeholder="Password" />
-      </div>
+      <div class="login-hero-header"><div class="login-hero-icon" style="background:#e8f5e9;color:#2e7d32;"><i class="fa-solid fa-user"></i></div><h3 class="login-hero-title">Customer Login</h3><p class="login-hero-subtitle">Continue with your customer account</p></div>
+      <div class="premium-input-wrapper"><i class="fa-solid fa-envelope"></i><input id="customer-login-email" class="custom-input" placeholder="Email address" /></div>
+      <div class="premium-input-wrapper"><i class="fa-solid fa-lock"></i><input id="customer-login-password" type="password" class="custom-input" placeholder="Password" /></div>
       <button class="btn-premium-submit" onclick="loginCustomer()">Login</button>
       <button class="btn-action-secondary" onclick="closeModal('customer-login-modal')">Back</button>
     </div>
@@ -474,19 +437,9 @@
 
   <div id="admin-login-modal" class="modal-overlay">
     <div class="modal-body">
-      <div class="login-hero-header">
-        <div class="login-hero-icon" style="background:#fff8e1;color:#f57f17;"><i class="fa-solid fa-shield-halved"></i></div>
-        <h3 class="login-hero-title">Admin Login</h3>
-        <p class="login-hero-subtitle">Authorized admin access</p>
-      </div>
-      <div class="premium-input-wrapper">
-        <i class="fa-solid fa-envelope"></i>
-        <input id="admin-login-email" class="custom-input" placeholder="Admin email" value="res.antor.ticket23@gmail.com" />
-      </div>
-      <div class="premium-input-wrapper">
-        <i class="fa-solid fa-key"></i>
-        <input id="admin-login-password" type="password" class="custom-input" placeholder="Admin password" />
-      </div>
+      <div class="login-hero-header"><div class="login-hero-icon" style="background:#fff8e1;color:#f57f17;"><i class="fa-solid fa-shield-halved"></i></div><h3 class="login-hero-title">Admin Login</h3><p class="login-hero-subtitle">Authorized admin access</p></div>
+      <div class="premium-input-wrapper"><i class="fa-solid fa-envelope"></i><input id="admin-login-email" class="custom-input" placeholder="Admin email" value="res.antor.ticket23@gmail.com" /></div>
+      <div class="premium-input-wrapper"><i class="fa-solid fa-key"></i><input id="admin-login-password" type="password" class="custom-input" placeholder="Admin password" /></div>
       <button class="btn-premium-submit" onclick="loginAdmin()">Login as Admin</button>
       <button class="btn-action-secondary" onclick="closeModal('admin-login-modal')">Back</button>
     </div>
@@ -494,65 +447,25 @@
 
   <div id="checkout-modal" class="modal-overlay">
     <div class="modal-body">
-      <div class="modal-header-premium">
-        <h3>Checkout</h3>
-        <button class="close-btn-prm" onclick="closeModal('checkout-modal')">&times;</button>
-      </div>
-      <div class="form-group-custom">
-        <label>Customer Name</label>
-        <input id="checkout-name" class="custom-input-field" />
-      </div>
-      <div class="form-group-custom">
-        <label>Phone</label>
-        <input id="checkout-phone" class="custom-input-field" />
-      </div>
-      <div class="form-group-custom">
-        <label>Address</label>
-        <textarea id="checkout-address" rows="3" class="custom-input-field"></textarea>
-      </div>
-      <div class="form-group-custom">
-        <label>Delivery Area</label>
-        <select id="checkout-delivery-area" class="custom-input-field">
-          <option value="inside">Inside city</option>
-          <option value="outside">Outside city</option>
-          <option value="paurashava">Paurashava</option>
-        </select>
-      </div>
-      <div class="form-group-custom">
-        <label>Payment Method</label>
-        <select id="checkout-payment-method" class="custom-input-field"></select>
-      </div>
+      <div class="modal-header-premium"><h3>Checkout</h3><button class="close-btn-prm" onclick="closeModal('checkout-modal')">&times;</button></div>
+      <div class="form-group-custom"><label>Customer Name</label><input id="checkout-name" class="custom-input-field" /></div>
+      <div class="form-group-custom"><label>Phone</label><input id="checkout-phone" class="custom-input-field" /></div>
+      <div class="form-group-custom"><label>Address</label><textarea id="checkout-address" rows="3" class="custom-input-field"></textarea></div>
+      <div class="form-group-custom"><label>Delivery Area</label><select id="checkout-delivery-area" class="custom-input-field"><option value="inside">Inside city</option><option value="outside">Outside city</option><option value="paurashava">Paurashava</option></select></div>
+      <div class="form-group-custom"><label>Payment Method</label><select id="checkout-payment-method" class="custom-input-field"></select></div>
       <button class="btn-checkout" onclick="submitOrder()">Place Order</button>
     </div>
   </div>
 
   <div id="product-modal" class="modal-overlay">
     <div class="modal-body">
-      <div class="modal-header-premium">
-        <h3 id="product-modal-title">Add Product</h3>
-        <button class="close-btn-prm" onclick="closeModal('product-modal')">&times;</button>
-      </div>
+      <div class="modal-header-premium"><h3 id="product-modal-title">Add Product</h3><button class="close-btn-prm" onclick="closeModal('product-modal')">&times;</button></div>
       <input type="hidden" id="edit-product-id" />
-      <div class="form-group-custom">
-        <label>Name</label>
-        <input id="product-name" class="custom-input-field" />
-      </div>
-      <div class="form-group-custom">
-        <label>Category</label>
-        <select id="product-category" class="custom-input-field"></select>
-      </div>
-      <div class="form-group-custom">
-        <label>Price</label>
-        <input id="product-price" type="number" class="custom-input-field" />
-      </div>
-      <div class="form-group-custom">
-        <label>Discount %</label>
-        <input id="product-discount" type="number" class="custom-input-field" value="0" />
-      </div>
-      <div class="form-group-custom">
-        <label>Image URL</label>
-        <input id="product-image" class="custom-input-field" placeholder="https://..." />
-      </div>
+      <div class="form-group-custom"><label>Name</label><input id="product-name" class="custom-input-field" /></div>
+      <div class="form-group-custom"><label>Category</label><select id="product-category" class="custom-input-field"></select></div>
+      <div class="form-group-custom"><label>Price</label><input id="product-price" type="number" class="custom-input-field" /></div>
+      <div class="form-group-custom"><label>Discount %</label><input id="product-discount" type="number" class="custom-input-field" value="0" /></div>
+      <div class="form-group-custom"><label>Image URL</label><input id="product-image" class="custom-input-field" placeholder="https://..." /></div>
       <button class="btn-checkout" onclick="saveProduct()">Save Product</button>
     </div>
   </div>
@@ -563,11 +476,16 @@
         <div id="p-alert-icon" class="premium-alert-icon info"><i id="p-alert-icon-i" class="fa-solid fa-circle-info"></i></div>
         <h4 id="p-alert-title" class="premium-alert-title">Alert</h4>
         <p id="p-alert-msg" class="premium-alert-msg">Message</p>
-        <div class="premium-alert-actions">
-          <button class="btn-premium-submit" id="p-alert-ok-btn" onclick="closeModal('premium-alert-modal')">OK</button>
-        </div>
+        <div class="premium-alert-actions"><button class="btn-premium-submit" id="p-alert-ok-btn" onclick="closeModal('premium-alert-modal')">OK</button></div>
       </div>
     </div>
+  </div>
+
+  <div class="bottom-nav">
+    <button class="bottom-nav-item" id="nav-home-btn"><i class="fa-solid fa-house"></i><span>Home</span></button>
+    <button class="bottom-nav-item" id="nav-cat-btn"><i class="fa-solid fa-layer-group"></i><span>Category</span></button>
+    <button class="bottom-nav-item" id="nav-cart-btn"><span class="cart-badge" id="nav-cart-count">0</span><i class="fa-solid fa-cart-shopping"></i><span>Cart</span></button>
+    <button class="bottom-nav-item" id="nav-account-btn"><i class="fa-solid fa-user"></i><span id="nav-account-label">Login</span></button>
   </div>
 
   <script>
@@ -615,7 +533,7 @@
       }
       try {
         return JSON.parse(raw);
-      } catch (err) {
+      } catch {
         localStorage.setItem('boibichitrapakundia_store_data', JSON.stringify(defaultStoreData));
         return JSON.parse(JSON.stringify(defaultStoreData));
       }
@@ -935,10 +853,7 @@
         card.className = 'order-card-admin';
         const statusClass = order.status === 'delivered' ? 'status-delivered' : 'status-pending';
         card.innerHTML = `
-          <div class="order-header-row">
-            <span>#${order.id}</span>
-            <span class="badge-status ${statusClass}">${order.status}</span>
-          </div>
+          <div class="order-header-row"><span>#${order.id}</span><span class="badge-status ${statusClass}">${order.status}</span></div>
           <p class="order-details-p"><strong>Date:</strong> ${order.date}</p>
           <p class="order-details-p"><strong>Name:</strong> ${order.customerName} (${order.customerPhone})</p>
           <p class="order-details-p"><strong>Address:</strong> ${order.customerAddress}</p>
@@ -975,7 +890,6 @@
     function renderAdminProducts() {
       const container = document.getElementById('admin-products-list');
       if (!container) return;
-
       container.innerHTML = '';
       if (!storeData.products.length) {
         container.innerHTML = '<div class="empty-state">No products available.</div>';
@@ -1297,7 +1211,9 @@
       initBottomNav();
       showUserStoreView();
       switchAdminTab('orders-tab');
-      document.getElementById('checkout-delivery-area').addEventListener('change', calculateBillSummary);
+      if (document.getElementById('checkout-delivery-area')) {
+        document.getElementById('checkout-delivery-area').addEventListener('change', calculateBillSummary);
+      }
     }
 
     document.addEventListener('click', function(e) {
